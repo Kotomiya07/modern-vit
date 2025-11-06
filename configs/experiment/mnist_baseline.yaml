@@ -1,0 +1,30 @@
+# @package _global_
+
+# MNIST Baseline Experiment
+# To execute this experiment run:
+# python scripts/train.py experiment=mnist_baseline
+
+defaults:
+  - /model_variant@model: mnist_simple
+  - /data_variant@data: mnist_standard
+  - override /data: mnist
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: null
+
+tags: ["mnist", "baseline", "simple_cnn"]
+
+seed: 42
+
+# Training configuration
+train: true
+test: true
+
+trainer:
+  max_epochs: 10
+  accelerator: "cpu"
+  devices: 1
+  deterministic: false
+
+# Model will be loaded from model_variant/mnist_simple.yaml
+# Data configuration will be loaded from data_variant/mnist_standard.yaml

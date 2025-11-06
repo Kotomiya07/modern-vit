@@ -1,0 +1,6 @@
+# MNIST data variant: Standard configuration
+image_size: 28
+batch_size: 128
+train_val_test_split: [55_000, 5_000, 10_000]
+num_workers: 0  # Set to 0 for Mac/Windows to avoid multiprocessing issues
+pin_memory: false  # Not supported on MPS

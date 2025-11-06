@@ -1,0 +1,30 @@
+# @package _global_
+
+# MNIST Fast Development Run
+# To execute this experiment run:
+# python scripts/train.py experiment=mnist_dev
+
+defaults:
+  - /model_variant@model: mnist_simple
+  - /data_variant@data: mnist_standard
+  - override /data: mnist
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: null
+
+tags: ["mnist", "dev", "fast_test"]
+
+seed: 42
+
+# Fast development settings
+train: true
+test: true
+
+trainer:
+  max_epochs: 1
+  accelerator: "cpu"
+  devices: 1
+  fast_dev_run: false
+  limit_train_batches: 10
+  limit_val_batches: 5
+  limit_test_batches: 5

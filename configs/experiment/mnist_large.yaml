@@ -1,0 +1,30 @@
+# @package _global_
+
+# MNIST Large Model Experiment
+# To execute this experiment run:
+# python scripts/train.py experiment=mnist_large
+
+defaults:
+  - /model_variant@model: mnist_large
+  - /data_variant@data: mnist_large_batch
+  - override /data: mnist
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: null
+
+tags: ["mnist", "large_model", "256_hidden"]
+
+seed: 42
+
+# Training configuration
+train: true
+test: true
+
+trainer:
+  max_epochs: 5
+  accelerator: "cpu"
+  devices: 1
+  deterministic: false
+
+# Model will be loaded from model_variant/mnist_large.yaml
+# Data configuration will be loaded from data_variant/mnist_large_batch.yaml

@@ -1,0 +1,10 @@
+# @package _global_
+
+# disable python warnings if they annoy you
+ignore_warnings: False
+
+# set False to skip model training
+enforce_tags: True
+
+# pretty print config tree using Rich library
+print_config: True
