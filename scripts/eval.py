@@ -14,6 +14,7 @@ from lightning import LightningDataModule, LightningModule, Trainer
 from omegaconf import DictConfig, OmegaConf
 
 from modern_vit.utils.logging_utils import setup_logger
+from modern_vit.utils.parameter_utils import print_model_parameters
 
 log = setup_logger(__name__)
 
@@ -42,17 +43,23 @@ def main(cfg: DictConfig) -> None:
     log.info(f"Instantiating model <{cfg.model._target_}>")
     model: LightningModule = hydra.utils.instantiate(cfg.model)
 
+    # Print model parameters
+    print_model_parameters(model)
+
     # Instantiate trainer
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
     trainer: Trainer = hydra.utils.instantiate(cfg.trainer)
 
-    # Load checkpoint
-    if cfg.get("ckpt_path"):
-        log.info(f"Loading checkpoint from {cfg.ckpt_path}")
+    # Check checkpoint path
+    ckpt_path = cfg.get("ckpt_path")
+    if ckpt_path:
+        log.info(f"Will load checkpoint from: {ckpt_path}")
+    else:
+        log.warning("No checkpoint path specified. Model will use randomly initialized weights.")
 
     # Evaluate
     log.info("Starting evaluation!")
-    trainer.test(model=model, datamodule=datamodule, ckpt_path=cfg.get("ckpt_path"))
+    trainer.test(model=model, datamodule=datamodule, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":

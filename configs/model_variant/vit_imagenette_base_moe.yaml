@@ -1,0 +1,29 @@
+# ViT model variant: Base configuration with MoE for Imagenette
+config:
+  # Image and patch configuration
+  image_size: 224
+  patch_size: 16
+  channels: 3
+  
+  # Model architecture
+  num_classes: 10
+  dim: 384
+  depth: 12
+  heads: 6
+  n_kv_heads: 6
+  multiple_of: 256
+  
+  # MoE configuration (enabled)
+  n_experts: 8
+  n_experts_per_tok: 2
+  router_config:
+    type: token_choice
+    k: 2
+  # Apply MoE to deeper layers (more capacity where needed)
+  moe_layers: [4, 5, 6, 7, 8, 9, 10, 11]
+  
+  # Training configuration
+  lr: 1e-3
+  weight_decay: 0.05
+  aux_loss_weight: 0.01
+

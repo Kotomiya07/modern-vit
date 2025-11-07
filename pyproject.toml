@@ -1,5 +1,5 @@
 [project]
-name = "your-project-name"
+name = "modern_vit"
 version = "0.1.0"
 description = "A brief description of the project."
 readme = "README.md"
@@ -29,7 +29,7 @@ vision = [
 nlp = [
     "transformers>=4.56.1",
     "tiktoken>=0.11.0",
-    "datasets>=4.0.0",
+    "datasets==3.6.0",
 ]
 
 # Pretraining

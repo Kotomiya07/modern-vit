@@ -1,8 +1,12 @@
 # Imagenette dataset configuration
+# Uses HuggingFace datasets library (frgfm/imagenette)
 _target_: modern_vit.data.imagenette_datamodule.ImagenetteDataModule
 
-# Dataset paths
+# Dataset cache directory (optional, for caching downloaded datasets)
 data_dir: ${paths.data_dir}/imagenette2-320
+
+# Dataset configuration ('160px', '320px', or 'full_size')
+dataset_config: "320px"
 
 # Data loading configuration
 image_size: 224

@@ -16,6 +16,7 @@ from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig, OmegaConf
 
 from modern_vit.utils.logging_utils import setup_logger
+from modern_vit.utils.parameter_utils import print_model_parameters
 
 log = setup_logger(__name__)
 
@@ -83,6 +84,9 @@ def main(cfg: DictConfig) -> float | None:
     # Instantiate model
     log.info(f"Instantiating model <{cfg.model._target_}>")
     model: LightningModule = hydra.utils.instantiate(cfg.model)
+
+    # Print model parameters
+    print_model_parameters(model)
 
     # Instantiate callbacks
     callbacks: list[Callback] = instantiate_callbacks(cfg.get("callbacks"))

@@ -1,0 +1,35 @@
+# @package _global_
+
+# ViT Imagenette Baseline Experiment with MoE
+# To execute this experiment run:
+# uv run python scripts/train.py experiment=vit_imagenette_baseline_moe
+
+defaults:
+  - /model_variant@model: vit_imagenette_base_moe
+  - /data_variant@data: imagenette_standard
+  - override /model: vit_imagenette
+  - override /data: imagenette
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: null
+
+tags: ["vit", "imagenette", "baseline", "moe"]
+
+seed: 42
+
+# Training configuration
+train: true
+test: true
+
+trainer:
+  max_epochs: 30
+  accelerator: auto
+  devices: 1
+  deterministic: false
+  
+  # Gradient clipping
+  gradient_clip_val: 1.0
+
+# Model will be loaded from model_variant/vit_imagenette_base_moe.yaml
+# Data configuration will be loaded from data_variant/imagenette_standard.yaml
+

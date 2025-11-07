@@ -14,9 +14,13 @@ def test_imagenette_datamodule():
     """Test Imagenette DataModule initialization and data loading."""
     print("Testing Imagenette DataModule...")
 
+    data_dir = Path(__file__).parent.parent / "data" / "imagenette"
+    if not data_dir.exists():
+        data_dir.mkdir(parents=True, exist_ok=True)
+
     # Initialize datamodule
     datamodule = ImagenetteDataModule(
-        data_dir="data/imagenette",
+        data_dir=data_dir,
         image_size=224,
         batch_size=4,
         num_workers=0,
