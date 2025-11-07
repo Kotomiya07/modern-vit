@@ -1,0 +1,29 @@
+# ViT model configuration for Imagenette
+_target_: modern_vit.models.vit_module.ViTLightningModule
+
+config:
+  _target_: modern_vit.models.config.ViTLightningModuleConfig
+  
+  # Image and patch configuration
+  image_size: 224
+  patch_size: 16
+  channels: 3
+  
+  # Model architecture
+  num_classes: 10  # Imagenette has 10 classes
+  dim: 384
+  depth: 12
+  heads: 6
+  n_kv_heads: 6
+  multiple_of: 256
+  
+  # MoE configuration (disabled by default)
+  n_experts: 1
+  n_experts_per_tok: 1
+  router_config: null
+  moe_layers: []
+  
+  # Training configuration
+  lr: 1e-3
+  weight_decay: 0.05
+  aux_loss_weight: 0.01
