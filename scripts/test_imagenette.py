@@ -3,11 +3,11 @@
 import sys
 from pathlib import Path
 
-from modern_vit.data.imagenette_datamodule import ImagenetteDataModule
-
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
+
+from modern_vit.data.imagenette_datamodule import ImagenetteDataModule
 
 
 def test_imagenette_datamodule():

@@ -51,11 +51,11 @@ uv run python scripts/train.py experiment=vit_imagenette_baseline
 ```
 modern_vit/data/
 ├── __init__.py
-└── imagenette_datamodule.py     # ImagenetteデータモジュールTrain
+└── imagenette_datamodule.py     # Imagenetteデータモジュール
 
 configs/
 ├── data/
-│   └── imagenette.yaml          # データ設定
+│   └── imagenette.yaml
 ├── data_variant/
 │   └── imagenette_standard.yaml # データバリアント
 ├── model/
