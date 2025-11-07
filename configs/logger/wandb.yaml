@@ -2,7 +2,7 @@
 wandb:
   _target_: lightning.pytorch.loggers.WandbLogger
 
-  project: "project_name"
+  project: "modern_vit"
   name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
   save_dir: "${paths.output_dir}"
   log_model: False # "all" or True or False

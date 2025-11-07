@@ -47,7 +47,7 @@ body:
       description: 提案する機能の使用例を示してください（該当する場合）
       render: python
       placeholder: |
-        from project_name import NewFeature
+        from modern_vit import NewFeature
 
         feature = NewFeature()
         result = feature.do_something()

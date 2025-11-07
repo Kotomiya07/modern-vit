@@ -9,7 +9,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Default values
-DEFAULT_PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+DEFAULT_modern_vit=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
 PYTHON_VERSION="3.12"
 
 # Functions
@@ -109,32 +109,32 @@ check_github_cli() {
 
 
 # Get project name from user
-get_project_name() {
+get_modern_vit() {
     echo "Current directory: $(pwd)"
-    echo -n "Enter your project name (default: $DEFAULT_PROJECT_NAME): "
-    read -r PROJECT_NAME
+    echo -n "Enter your project name (default: $DEFAULT_modern_vit): "
+    read -r modern_vit
 
-    if [ -z "$PROJECT_NAME" ]; then
-        PROJECT_NAME=$DEFAULT_PROJECT_NAME
+    if [ -z "$modern_vit" ]; then
+        modern_vit=$DEFAULT_modern_vit
     fi
 
     # Validate project name ( package naming rules)
-    if ! echo "$PROJECT_NAME" | grep -qE '^[a-z][a-z0-9_]*$'; then
+    if ! echo "$modern_vit" | grep -qE '^[a-z][a-z0-9_]*$'; then
         print_error "Invalid project name. Use lowercase letters, numbers, and underscores only."
         print_error "Must start with a letter."
         exit 1
     fi
 
-    echo "Project name: $PROJECT_NAME"
+    echo "Project name: $modern_vit"
 }
 
 # Update project name in all files
-update_project_name() {
-    print_step "Updating project name to '$PROJECT_NAME'..."
+update_modern_vit() {
+    print_step "Updating project name to '$modern_vit'..."
 
     # Use the  script if it exists
-    if [ -f "scripts/update_project_name.py" ]; then
-        python3 scripts/update_project_name.py "$PROJECT_NAME"
+    if [ -f "scripts/update_modern_vit.py" ]; then
+        python3 scripts/update_modern_vit.py "$modern_vit"
     else
         # Fallback to manual replacement
         # Update in specific files
@@ -142,19 +142,19 @@ update_project_name() {
             if [ -f "$file" ]; then
                 if [[ "$OSTYPE" == "darwin"* ]]; then
                     # macOS
-                    sed -i '' "s/project_name/$PROJECT_NAME/g" "$file"
-                    sed -i '' "s/project-name/${PROJECT_NAME//_/-}/g" "$file"
+                    sed -i '' "s/modern_vit/$modern_vit/g" "$file"
+                    sed -i '' "s/project-name/${modern_vit//_/-}/g" "$file"
                 else
                     # Linux
-                    sed -i "s/project_name/$PROJECT_NAME/g" "$file"
-                    sed -i "s/project-name/${PROJECT_NAME//_/-}/g" "$file"
+                    sed -i "s/modern_vit/$modern_vit/g" "$file"
+                    sed -i "s/project-name/${modern_vit//_/-}/g" "$file"
                 fi
             fi
         done
 
         # Rename package directory
-        if [ -d "project_name" ]; then
-            mv "project_name" "$PROJECT_NAME"
+        if [ -d "modern_vit" ]; then
+            mv "modern_vit" "$modern_vit"
         fi
     fi
 
@@ -226,11 +226,11 @@ main() {
     check_github_cli
 
     # Get project configuration
-    get_project_name
+    get_modern_vit
     echo
 
     # Perform setup
-    update_project_name
+    update_modern_vit
     setup_python
     setup_precommit
     init_git

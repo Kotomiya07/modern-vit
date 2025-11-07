@@ -46,7 +46,7 @@ uv add torch torchvision torchaudio
 
 ```
 ml-project/
-├── project_name/
+├── modern_vit/
 │   ├── data/           # データ処理
 │   │   ├── datasets.py
 │   │   └── transforms.py
@@ -90,7 +90,7 @@ uv run wandb init
 ### 基本的な使用方法
 
 ```python
-# project_name/training/trainer.py
+# modern_vit/training/trainer.py
 import wandb
 import torch
 from typing import Any
@@ -101,7 +101,7 @@ class MLTrainer:
 
         # wandb初期化
         wandb.init(
-            project=config["project_name"],
+            project=config["modern_vit"],
             name=config["experiment_name"],
             config=config,
             tags=config.get("tags", []),
@@ -190,7 +190,7 @@ class MLTrainer:
 ### 高度なwandb活用
 
 ```python
-# project_name/utils/wandb_utils.py
+# modern_vit/utils/wandb_utils.py
 import wandb
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -260,7 +260,7 @@ defaults:
   - experiment: baseline
 
 # 基本設定
-project_name: "ml-project"
+modern_vit: "ml-project"
 experiment_name: "baseline_experiment"
 seed: 42
 
@@ -276,7 +276,7 @@ device: "auto"  # auto, cpu, cuda, mps
 
 # wandb設定
 wandb:
-  project: "${project_name}"
+  project: "${modern_vit}"
   tags: ["baseline", "experiment"]
   log_artifacts: true
 
@@ -368,7 +368,7 @@ nvidia-smi
 ### 1. モデル評価とデプロイ
 
 ```python
-# project_name/evaluation/evaluator.py
+# modern_vit/evaluation/evaluator.py
 import torch
 import wandb
 from typing import Any

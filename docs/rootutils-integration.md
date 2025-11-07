@@ -48,7 +48,7 @@ uv run --directory /path/to/DL-Scaffold python /path/to/DL-Scaffold/scripts/trai
 ```
 
 ### 2. インポートの安定性
-- `project_name` モジュールのインポートが確実に成功
+- `modern_vit` モジュールのインポートが確実に成功
 - `sys.path` への手動追加が不要
 - PYTHONPATH 環境変数の設定が不要
 
@@ -95,8 +95,8 @@ uv run --directory /Users/ryo/Documents/DL-Scaffold python /Users/ryo/Documents/
 import rootutils
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
-# この後に project_name モジュールをインポート
-from project_name.utils.logging_utils import setup_logger
+# この後に modern_vit モジュールをインポート
+from modern_vit.utils.logging_utils import setup_logger
 ```
 
 ## まとめ

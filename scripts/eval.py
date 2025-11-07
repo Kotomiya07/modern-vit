@@ -13,7 +13,7 @@ import lightning as L
 from lightning import LightningDataModule, LightningModule, Trainer
 from omegaconf import DictConfig, OmegaConf
 
-from project_name.utils.logging_utils import setup_logger
+from modern_vit.utils.logging_utils import setup_logger
 
 log = setup_logger(__name__)
 

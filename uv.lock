@@ -2082,7 +2082,7 @@ wheels = [
 ]
 
 [[package]]
-name = "project-name"
+name = "your-project-name"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -2169,7 +2169,7 @@ requires-dist = [
     { name = "myst-parser", marker = "extra == 'docs'", specifier = ">=2.0.0" },
     { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.6.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7.0" },
-    { name = "project-name", extras = ["vision", "nlp", "pretrain", "audio", "wandb-logging", "huggingface", "notebook"], marker = "extra == 'all'" },
+    { name = "your-project-name", extras = ["vision", "nlp", "pretrain", "audio", "wandb-logging", "huggingface", "notebook"], marker = "extra == 'all'" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.5.0" },

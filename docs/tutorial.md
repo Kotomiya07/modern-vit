@@ -53,7 +53,7 @@ uv run python scripts/train.py experiment=mnist_baseline
 
 ### ステップ1: LightningModuleを実装
 
-`project_name/models/custom_model.py`:
+`modern_vit/models/custom_model.py`:
 
 ```python
 """Custom model for your task."""
@@ -127,7 +127,7 @@ class CustomLightningModule(LightningModule):
 `configs/model_variant/custom.yaml`:
 
 ```yaml
-_target_: project_name.models.custom_model.CustomLightningModule
+_target_: modern_vit.models.custom_model.CustomLightningModule
 
 input_dim: 784
 hidden_dim: 256
@@ -169,7 +169,7 @@ uv run python scripts/train.py experiment=custom_baseline
 
 ### ステップ1: DataModuleを実装
 
-`project_name/data/custom_datamodule.py`:
+`modern_vit/data/custom_datamodule.py`:
 
 ```python
 """Custom DataModule."""
@@ -236,7 +236,7 @@ class CustomDataModule(LightningDataModule):
 `configs/data/custom.yaml`:
 
 ```yaml
-_target_: project_name.data.custom_datamodule.CustomDataModule
+_target_: modern_vit.data.custom_datamodule.CustomDataModule
 
 data_dir: ${paths.data_dir}/custom
 batch_size: 32

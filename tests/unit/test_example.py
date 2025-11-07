@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from project_name.core.example import (
+from modern_vit.core.example import (
     ExampleClass,
     ExampleConfig,
     process_data,

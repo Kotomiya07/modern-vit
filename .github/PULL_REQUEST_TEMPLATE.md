@@ -25,7 +25,7 @@
 ### コード品質
 - [ ] コードが正しくフォーマットされている (`uv run ruff format .`)
 - [ ] リンターのチェックをパスしている (`uv run ruff check .`)
-- [ ] 型チェックをパスしている (`uv run mypy project_name/ --strict`)
+- [ ] 型チェックをパスしている (`uv run mypy modern_vit/ --strict`)
 - [ ] すべてのテストがパスしている (`uv run pytest`)
 - [ ] pre-commitフックが正常に動作する (`uv run pre-commit run --all-files`)
 

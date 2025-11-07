@@ -27,7 +27,7 @@ repos:
       - id: mypy
         additional_dependencies: []
     args: [--strict, --ignore-missing-imports]
-    files: ^project_name/
+    files: ^modern_vit/
 
   # Security
   - repo: https://github.com/PyCQA/bandit

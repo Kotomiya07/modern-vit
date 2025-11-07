@@ -1,5 +1,5 @@
 [project]
-name = "project-name"
+name = "your-project-name"
 version = "0.1.0"
 description = "A brief description of the project."
 readme = "README.md"
@@ -80,7 +80,7 @@ docs = [
 
 # All optional dependencies
 all = [
-    "project-name[vision,nlp,pretrain,audio,wandb-logging,huggingface,notebook]",
+    "your-project-name[vision,nlp,pretrain,audio,wandb-logging,huggingface,notebook]",
 ]
 
 [build-system]
@@ -88,7 +88,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["project_name"]
+packages = ["modern_vit"]
 
 [tool.ruff]
 line-length = 88
