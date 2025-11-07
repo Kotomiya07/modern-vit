@@ -1,0 +1,43 @@
+# @package _global_
+
+# ViT Imagenette Dev Experiment (smaller model for faster iteration)
+# To execute this experiment run:
+# uv run python scripts/train.py experiment=vit_imagenette_dev
+
+defaults:
+  - /model_variant@model: vit_imagenette_small
+  - /data_variant@data: imagenette_standard
+  - override /model: vit_imagenette
+  - override /data: imagenette
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: null
+
+tags: ["vit", "imagenette", "dev"]
+
+seed: 42
+
+# Training configuration
+train: true
+test: true
+
+trainer:
+  max_epochs: 10
+  accelerator: auto
+  devices: 1
+  deterministic: false
+  
+  # Fast dev run options
+  # fast_dev_run: true  # Uncomment for quick testing
+  
+  # Limit batches for faster iteration
+  limit_train_batches: 100
+  limit_val_batches: 20
+
+# Smaller batch size for development
+data:
+  batch_size: 16
+  num_workers: 2
+
+# Model will be loaded from model_variant/vit_imagenette_small.yaml
+# Data configuration will be loaded from data_variant/imagenette_standard.yaml

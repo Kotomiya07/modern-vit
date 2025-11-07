@@ -1,0 +1,29 @@
+# Imagenette dataset configuration
+_target_: modern_vit.data.imagenette_datamodule.ImagenetteDataModule
+
+# Dataset paths
+data_dir: ${paths.data_dir}/imagenette2-320
+
+# Data loading configuration
+image_size: 224
+batch_size: 32
+num_workers: 4
+pin_memory: true
+
+# Data augmentation
+train_transforms:
+  - RandomResizedCrop
+  - RandomHorizontalFlip
+  - ColorJitter
+  - ToTensor
+  - Normalize
+
+val_transforms:
+  - Resize
+  - CenterCrop
+  - ToTensor
+  - Normalize
+
+# Normalization parameters (ImageNet stats)
+mean: [0.485, 0.456, 0.406]
+std: [0.229, 0.224, 0.225]
