@@ -1,5 +1,5 @@
 # MNIST model variant: Simple CNN with 128 hidden units
-_target_: project_name.models.mnist_module.MNISTLightningModule
+_target_: modern_vit.models.mnist_module.MNISTLightningModule
 
 input_size: 28
 hidden_dim: 128

@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from project_name.core.example import ExampleClass, ExampleConfig
+from modern_vit.core.example import ExampleClass, ExampleConfig
 
 
 @pytest.fixture

@@ -72,7 +72,7 @@ backend = [
 
 ```
 backend-project/
-├── project_name/
+├── modern_vit/
 │   ├── api/                # API エンドポイント
 │   │   ├── __init__.py
 │   │   ├── deps.py         # 依存性注入
@@ -130,18 +130,18 @@ backend-project/
 ### メインアプリケーション
 
 ```python
-# project_name/main.py
+# modern_vit/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import structlog
 
-from project_name.api.routes import auth, users, health
-from project_name.api.middleware.cors import setup_cors
-from project_name.api.middleware.logging import setup_logging
-from project_name.core.config import get_settings
-from project_name.core.exceptions import CustomException
-from project_name.db.session import engine
+from modern_vit.api.routes import auth, users, health
+from modern_vit.api.middleware.cors import setup_cors
+from modern_vit.api.middleware.logging import setup_logging
+from modern_vit.core.config import get_settings
+from modern_vit.core.exceptions import CustomException
+from modern_vit.db.session import engine
 
 logger = structlog.get_logger()
 
@@ -160,7 +160,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title=settings.PROJECT_NAME,
+        title=settings.modern_vit,
         version=settings.VERSION,
         description=settings.DESCRIPTION,
         docs_url="/docs" if settings.DEBUG else None,
@@ -203,14 +203,14 @@ if __name__ == "__main__":
 ### 設定管理
 
 ```python
-# project_name/core/config.py
+# modern_vit/core/config.py
 from functools import lru_cache
 from pydantic import AnyHttpUrl, validator
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # アプリケーション設定
-    PROJECT_NAME: str = "Backend Project"
+    modern_vit: str = "Backend Project"
     VERSION: str = "0.1.0"
     DESCRIPTION: str = "FastAPI Backend Template"
     DEBUG: bool = False
@@ -264,10 +264,10 @@ def get_settings() -> Settings:
 ### データベース設定
 
 ```python
-# project_name/db/session.py
+# modern_vit/db/session.py
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from project_name.core.config import get_settings
+from modern_vit.core.config import get_settings
 
 settings = get_settings()
 
@@ -291,7 +291,7 @@ async def get_db() -> AsyncSession:
 ```
 
 ```python
-# project_name/db/base.py
+# modern_vit/db/base.py
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
@@ -313,7 +313,7 @@ class BaseModel(Base, TimestampMixin):
 ### Pydantic スキーマ
 
 ```python
-# project_name/schemas/common.py
+# modern_vit/schemas/common.py
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
@@ -351,9 +351,9 @@ class PaginatedResponse(BaseResponse):
 ```
 
 ```python
-# project_name/schemas/user.py
+# modern_vit/schemas/user.py
 from pydantic import BaseModel, EmailStr, ConfigDict
-from project_name.schemas.common import TimestampSchema
+from modern_vit.schemas.common import TimestampSchema
 
 class UserBase(BaseModel):
     """ユーザーベーススキーマ"""
@@ -390,12 +390,12 @@ class User(UserBase, TimestampSchema):
 ### 認証・セキュリティ
 
 ```python
-# project_name/core/security.py
+# modern_vit/core/security.py
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
-from project_name.core.config import get_settings
+from modern_vit.core.config import get_settings
 
 settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -450,15 +450,15 @@ def verify_token(token: str) -> dict:
 ### API エンドポイント例
 
 ```python
-# project_name/api/routes/users.py
+# modern_vit/api/routes/users.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from project_name.db.session import get_db
-from project_name.schemas.user import User, UserCreate, UserUpdate
-from project_name.schemas.common import BaseResponse, PaginationParams
-from project_name.services.user_service import UserService
-from project_name.api.deps import get_current_user
+from modern_vit.db.session import get_db
+from modern_vit.schemas.user import User, UserCreate, UserUpdate
+from modern_vit.schemas.common import BaseResponse, PaginationParams
+from modern_vit.services.user_service import UserService
+from modern_vit.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -505,14 +505,14 @@ async def list_users(
 ### サービス層
 
 ```python
-# project_name/services/user_service.py
+# modern_vit/services/user_service.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 
-from project_name.db.models.user import User as UserModel
-from project_name.schemas.user import UserCreate, UserUpdate, User
-from project_name.core.security import get_password_hash
+from modern_vit.db.models.user import User as UserModel
+from modern_vit.schemas.user import UserCreate, UserUpdate, User
+from modern_vit.core.security import get_password_hash
 
 class UserService:
     def __init__(self, db: AsyncSession):
@@ -598,7 +598,7 @@ class UserService:
 
 ```bash
 # 開発サーバー起動
-uv run uvicorn project_name.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn modern_vit.main:app --reload --host 0.0.0.0 --port 8000
 
 # マイグレーション作成
 uv run alembic revision --autogenerate -m "Add user table"
@@ -642,10 +642,10 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from project_name.main import create_app
-from project_name.db.base import Base
-from project_name.db.session import get_db
-from project_name.core.config import get_settings
+from modern_vit.main import create_app
+from modern_vit.db.base import Base
+from modern_vit.db.session import get_db
+from modern_vit.core.config import get_settings
 
 settings = get_settings()
 
@@ -752,13 +752,13 @@ RUN pip install uv
 RUN uv sync --frozen
 
 # アプリケーションコード
-COPY project_name/ ./project_name/
+COPY modern_vit/ ./modern_vit/
 COPY migrations/ ./migrations/
 COPY scripts/ ./scripts/
 
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "project_name.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "modern_vit.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ```yaml
@@ -778,7 +778,7 @@ services:
       - db
       - redis
         volumes:
-            - ./project_name:/app/project_name
+            - ./modern_vit:/app/modern_vit
       - ./migrations:/app/migrations
 
   db:
@@ -806,7 +806,7 @@ volumes:
 ### パフォーマンス最適化
 
 ```python
-# project_name/api/middleware/cache.py
+# modern_vit/api/middleware/cache.py
 from fastapi import Request, Response
 from functools import wraps
 import redis.asyncio as redis
@@ -847,7 +847,7 @@ class CacheMiddleware:
 ### 監視・ログ
 
 ```python
-# project_name/utils/logger.py
+# modern_vit/utils/logger.py
 import structlog
 import logging.config
 

@@ -48,8 +48,8 @@ jobs:
         cat > benchmark_suite.py << 'EOF'
         """Benchmark suite for performance testing."""
         import random
-        from project_name.utils.helpers import chunk_list, flatten_dict
-        from project_name.core.example import ExampleClass, ExampleConfig
+        from modern_vit.utils.helpers import chunk_list, flatten_dict
+        from modern_vit.core.example import ExampleClass, ExampleConfig
 
         def test_chunk_list_small(benchmark):
             """Benchmark chunk_list with small lists."""

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 
-def validate_project_name(name: str) -> bool:
+def validate_modern_vit(name: str) -> bool:
     """Validate that the project name follows Python package naming conventions."""
     if not re.match(r"^[a-z][a-z0-9_]*$", name):
         return False
@@ -123,8 +123,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--old-name",
-        default="project_name",
-        help="Old project name to replace (default: project_name)",
+        default="modern_vit",
+        help="Old project name to replace (default: modern_vit)",
     )
     parser.add_argument(
         "--dry-run",
@@ -135,7 +135,7 @@ def main() -> None:
     args = parser.parse_args()
 
     # Validate new name
-    if not validate_project_name(args.new_name):
+    if not validate_modern_vit(args.new_name):
         print(f"Error: '{args.new_name}' is not a valid Python package name.")
         print("Package names must:")
         print("  - Start with a lowercase letter")

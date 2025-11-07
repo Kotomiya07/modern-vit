@@ -18,15 +18,15 @@
 
 ```bash
 # 新しいリポジトリをクローン
-git clone https://github.com/yourusername/project-name.git
-cd project-name
+git clone https://github.com/yourusername/your-project-name.git
+cd your-project-name
 
 # セットアップ
 make setup
 ```
 
 セットアップスクリプトは以下を実行します：
-- すべての `project_name` を実際のプロジェクト名に更新（途中でプロジェクト名を入力するように求められます）
+- すべての `modern_vit` を実際のプロジェクト名に更新（途中でプロジェクト名を入力するように求められます）
 - uvを使用してPython環境を初期化
 - Rovo Dev CLIをインストール
 - GitHub CLI（`gh`）をインストール（途中でログインを求められます）
@@ -40,7 +40,7 @@ make setup
 
 ```bash
 # プロジェクト名を更新
-python scripts/update_project_name.py your_project_name
+python scripts/update_modern_vit.py your_modern_vit
 
 # uvをインストール（まだインストールしていない場合）
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -121,7 +121,7 @@ DL-Scaffold/
 │   │   └── mps.yaml (Apple Silicon)
 │   └── logger/                  # ロガー設定
 │       └── wandb.yaml
-├── project_name/                # メインパッケージ
+├── modern_vit/                # メインパッケージ
 │   ├── data/                    # DataModules
 │   │   └── mnist_datamodule.py
 │   ├── models/                  # LightningModules
@@ -197,7 +197,7 @@ uv run python scripts/eval.py \
 
 `configs/model_variant/my_model.yaml`:
 ```yaml
-_target_: project_name.models.mnist_module.MNISTLightningModule
+_target_: modern_vit.models.mnist_module.MNISTLightningModule
 
 input_size: 28
 hidden_dim: 512  # カスタマイズ
@@ -382,7 +382,7 @@ warn_unused_configs = true
 
 # 段階的により厳格な設定を有効化
 [[tool.mypy.overrides]]
-module = ["project_name.core.*"]
+module = ["modern_vit.core.*"]
 strict = true  # まずコアモジュールにstrictモードを適用
 ```
 

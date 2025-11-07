@@ -32,7 +32,7 @@ test:
 	uv run pytest
 
 test-cov:
-	uv run pytest --cov=project_name --cov-report=html --cov-report=term
+	uv run pytest --cov=modern_vit --cov-report=html --cov-report=term
 
 test-unit:
 	uv run pytest tests/unit/ -v
@@ -51,10 +51,10 @@ lint:
 	uv run ruff check . --fix
 
 typecheck:
-	uv run mypy project_name/ --strict
+	uv run mypy modern_vit/ --strict
 
 security:
-	uv run bandit -r project_name/
+	uv run bandit -r modern_vit/
 
 audit:
 	uv run pip-audit
@@ -66,7 +66,7 @@ benchmark:
 		uv run pytest benchmark_suite.py --benchmark-only --benchmark-autosave; \
 	else \
 		echo "Creating benchmark suite..."; \
-		echo 'import pytest\nfrom project_name.utils.helpers import chunk_list\n\ndef test_chunk_list_benchmark(benchmark):\n    data = list(range(1000))\n    result = benchmark(chunk_list, data, 10)\n    assert len(result) == 100' > benchmark_suite.py; \
+		echo 'import pytest\nfrom modern_vit.utils.helpers import chunk_list\n\ndef test_chunk_list_benchmark(benchmark):\n    data = list(range(1000))\n    result = benchmark(chunk_list, data, 10)\n    assert len(result) == 100' > benchmark_suite.py; \
 		uv add --dev pytest-benchmark; \
 		uv run pytest benchmark_suite.py --benchmark-only --benchmark-autosave; \
 	fi

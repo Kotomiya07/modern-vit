@@ -48,7 +48,7 @@ jobs:
     - name: Check for security issues
       run: |
         uv run pip-audit
-        uv run bandit -r project_name/
+        uv run bandit -r modern_vit/
 
   type-check:
     name: Type Check
@@ -69,7 +69,7 @@ jobs:
       run: uv sync --all-extras
 
     - name: Run mypy
-      run: uv run mypy project_name/ --strict --show-error-codes --pretty
+      run: uv run mypy modern_vit/ --strict --show-error-codes --pretty
 
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
@@ -102,7 +102,7 @@ jobs:
     - name: Run tests
       run: |
         uv run pytest tests/ \
-          --cov=project_name \
+          --cov=modern_vit \
           --cov-report=xml \
           --cov-report=term-missing \
           --cov-report=html \
