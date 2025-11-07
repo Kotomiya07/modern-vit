@@ -48,7 +48,7 @@ uv run python scripts/train.py experiment=vit_imagenette_baseline
 
 作成されたファイル:
 
-```
+```tree
 modern_vit/data/
 ├── __init__.py
 └── imagenette_datamodule.py     # Imagenetteデータモジュール
