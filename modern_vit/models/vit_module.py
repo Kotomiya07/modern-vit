@@ -141,7 +141,7 @@ class TokenChoiceRouter(AbstractRouter):
 
         # Get top-k experts for each token
         top_k_scores, top_k_indices = torch.topk(scores, self.n_experts_per_tok, dim=-1)
-        top_k_scores /= top_k_scores.sum(dim=-1, keepdim=True)
+        top_k_scores /= (top_k_scores.sum(dim=-1, keepdim=True) + 1e-8)
 
         # Calculate auxiliary loss for load balancing
         _, n_experts = scores.shape
@@ -176,11 +176,12 @@ class ExpertChoiceRouter(AbstractRouter):
         scores = nn.functional.softmax(logits_T, dim=-1)  # Softmax over tokens for each expert
 
         # Get top-k tokens for each expert
+        assert self.top_k_tokens <= n_tokens
         top_k_scores, top_k_indices = torch.topk(scores, self.top_k_tokens, dim=-1)
         # Shape: (n_experts, k)
 
         # Normalize scores
-        top_k_scores /= top_k_scores.sum(dim=-1, keepdim=True)
+        top_k_scores /= (top_k_scores.sum(dim=-1, keepdim=True) + 1e-8)
 
         # Convert to token-choice format: (n_tokens, k) where each token knows which experts selected it
         # This is a simplified conversion - full expert-choice routing would require
@@ -201,7 +202,7 @@ class ExpertChoiceRouter(AbstractRouter):
 
         # Take top-k experts per token (in case a token is selected by multiple experts)
         top_k_scores_final, top_k_indices_final = torch.topk(token_scores, min(n_experts, self.top_k_tokens), dim=-1)
-        top_k_scores_final /= top_k_scores_final.sum(dim=-1, keepdim=True)
+        top_k_scores_final /= (top_k_scores_final.sum(dim=-1, keepdim=True) + 1e-8)
 
         return top_k_scores_final, top_k_indices_final, torch.tensor(0.0, device=x.device)
 

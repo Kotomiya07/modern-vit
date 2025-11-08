@@ -176,24 +176,36 @@ class ImagenetteDataModule(LightningDataModule):
         Args:
             stage: Stage name ('fit', 'validate', 'test', or 'predict')
         """
-        if stage == "fit" or stage is None:
-            cache_dir = str(self.data_dir) if self.data_dir else None
+        cache_dir = str(self.data_dir) if self.data_dir else None
+
+        if stage in ("fit", None):
             dataset = load_dataset(
-                "frgfm/imagenette",
-                name=self.dataset_config,
-                cache_dir=cache_dir,
-                trust_remote_code=True,
+            "frgfm/imagenette",
+            name=self.dataset_config,
+            cache_dir=cache_dir,
+            trust_remote_code=True,
             )
 
             # Create PyTorch datasets
             self.train_dataset = ImagenetteDataset(
-                hf_dataset=dataset["train"],
-                transform=self.train_transform,
+            hf_dataset=dataset["train"],
+            transform=self.train_transform,
             )
 
             self.val_dataset = ImagenetteDataset(
-                hf_dataset=dataset["validation"],
-                transform=self.val_transform,
+            hf_dataset=dataset["validation"],
+            transform=self.val_transform,
+            )
+        elif stage in ("validate", "test"):
+            dataset = load_dataset(
+            "frgfm/imagenette",
+            name=self.dataset_config,
+            cache_dir=cache_dir,
+            trust_remote_code=True,
+            )
+            self.val_dataset = ImagenetteDataset(
+            hf_dataset=dataset["validation"],
+            transform=self.val_transform,
             )
 
     def train_dataloader(self) -> DataLoader:

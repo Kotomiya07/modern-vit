@@ -1,4 +1,4 @@
-"""スクリプト: MoEの動作を確認するためのデバッグツール."""
+"""Script: Debug tool for verifying MoE operation."""  
 
 import sys
 from pathlib import Path
@@ -14,7 +14,7 @@ from modern_vit.models.vit_module import ViTLightningModule
 
 
 def print_expert_stats(stats: dict, layer_idx: int) -> None:
-    """エキスパート使用統計を表示."""
+    """Display expert usage statistics."""
     print(f"\n=== Layer {layer_idx} MoE Statistics ===")
     print(f"Total tokens: {stats['n_tokens']}")
     print(f"Experts per token (k): {stats['k']}")
@@ -31,7 +31,7 @@ def print_expert_stats(stats: dict, layer_idx: int) -> None:
 
 
 def check_moe_functionality(config: DictConfig) -> None:
-    """MoEの動作を確認."""
+    """Check MoE functionality."""
     print("=" * 60)
     print("MoE Functionality Check")
     print("=" * 60)
@@ -141,7 +141,7 @@ def check_moe_functionality(config: DictConfig) -> None:
 
 
 def main() -> None:
-    """メイン関数."""
+    """Main function."""
     if len(sys.argv) < 2:
         print("Usage: python scripts/check_moe.py <config_path>")
         print("Example: python scripts/check_moe.py configs/experiment/vit_imagenette_dev.yaml")
@@ -155,8 +155,11 @@ def main() -> None:
     from hydra import compose, initialize_config_dir
 
     config_dir = Path("configs")
-    with initialize_config_dir(config_dir=str(config_dir), version_base=None):
-        cfg = compose(config_name=str(config_path.relative_to(config_dir)))
+    with initialize_config_dir(config_dir=str(config_dir), version_base=None):  
+        config_rel = config_path.relative_to(config_dir).as_posix()  
+        if config_rel.endswith(".yaml"):  
+            config_rel = config_rel[:-5]  
+        cfg = compose(config_name=config_rel)
 
     check_moe_functionality(cfg)
 

@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from modern_vit.models.config import ViTLightningModuleConfig
-from modern_vit.models.vit_module import MoE, TokenChoiceRouter, ViTLightningModule
+from modern_vit.models.vit_module import ExpertChoiceRouter, MoE, TokenChoiceRouter, ViTLightningModule
 
 
 @pytest.mark.parametrize(
@@ -220,3 +220,57 @@ def test_moe_gradient_flow() -> None:
     # Check that router parameters have gradients
     assert router.gate.weight.grad is not None
     assert router.gate.weight.grad.abs().sum() > 0
+
+
+def test_expert_choice_router_zero_sum_normalization() -> None:
+    """Test that ExpertChoiceRouter handles zero-sum normalization without NaN.
+    
+    This test verifies the fix for the bug where division by zero occurs
+    when a token isn't selected by any expert, causing NaN values in routing weights.
+    """
+    dim = 256
+    n_experts = 2
+    top_k_tokens = 2
+    
+    router = ExpertChoiceRouter(dim, n_experts, top_k_tokens)
+    
+    # Create a scenario where n_experts * top_k_tokens < n_tokens
+    # This means some tokens won't be selected by any expert
+    n_tokens = 10  # More tokens than can be selected (2 experts * 2 tokens = 4 tokens selected)
+    x = torch.randn(n_tokens, dim)
+    
+    # Run the router
+    top_k_scores, top_k_indices, aux_loss = router(x)
+    
+    # Check that there are no NaN values in the output
+    assert not torch.isnan(top_k_scores).any(), "Routing scores contain NaN values"
+    assert not torch.isinf(top_k_scores).any(), "Routing scores contain Inf values"
+    
+    # Check that scores are properly normalized for tokens that were selected
+    # For tokens that were selected, scores should sum to 1.0
+    # For tokens that were not selected, scores should be 0
+    score_sums = top_k_scores.sum(dim=-1)
+    
+    # Tokens with non-zero scores should have scores summing to 1.0
+    selected_tokens_mask = score_sums > 0
+    if selected_tokens_mask.any():
+        selected_scores_sum = score_sums[selected_tokens_mask]
+        torch.testing.assert_close(
+            selected_scores_sum, 
+            torch.ones_like(selected_scores_sum),
+            atol=1e-6,
+            rtol=1e-5,
+            msg="Selected tokens should have scores summing to 1.0"
+        )
+    
+    # Unselected tokens should have zero scores
+    unselected_tokens_mask = ~selected_tokens_mask
+    if unselected_tokens_mask.any():
+        unselected_scores = top_k_scores[unselected_tokens_mask]
+        assert (unselected_scores == 0).all(), "Unselected tokens should have zero scores"
+    
+    # Verify that the expected number of tokens were selected
+    n_selected_tokens = selected_tokens_mask.sum().item()
+    expected_selected = min(n_experts * top_k_tokens, n_tokens)
+    assert n_selected_tokens == expected_selected, \
+        f"Expected {expected_selected} tokens to be selected, but got {n_selected_tokens}"

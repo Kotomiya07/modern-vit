@@ -1,6 +1,5 @@
 """Model parameter counting utilities."""
 
-import torch
 from lightning import LightningModule
 from torch import nn
 
