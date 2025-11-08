@@ -1,4 +1,4 @@
-# DL-Scaffold
+# Modern ViT
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![uv](https://img.shields.io/badge/uv-latest-green.svg)](https://github.com/astral-sh/uv)
@@ -6,42 +6,33 @@
 [![Hydra](https://img.shields.io/badge/Config-Hydra-89b8cd.svg)](https://hydra.cc/)
 [![Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-**Lightning + Hydra + Wandb**を活用した、プロダクション対応の深層学習プロジェクトテンプレートです。実験管理、再現性、スケーラビリティを重視した設計で、すぐに研究開発を開始できます。
+**Vision Transformer (ViT)** と **Mixture of Experts (MoE)** の実装を含む、モダンな深層学習プロジェクトです。Lightning + Hydra + Wandb を活用し、実験管理、再現性、スケーラビリティを重視した設計で、Imagenette データセットでの ViT 学習をすぐに開始できます。
 
 ## クイックスタート
 
-### このテンプレートを使用する
-
-1. GitHubで「Use this template」ボタンをクリックして新しいリポジトリを作成
-2. 新しいリポジトリをクローン
-3. セットアップスクリプトを実行
+### セットアップ
 
 ```bash
-# 新しいリポジトリをクローン
-git clone https://github.com/yourusername/your-project-name.git
-cd your-project-name
+# リポジトリをクローン
+git clone https://github.com/Kotomiya07/modern-vit.git
+cd modern-vit
 
-# セットアップ
-make setup
+# セットアップスクリプトを実行
+bash scripts/setup.sh
 ```
 
 セットアップスクリプトは以下を実行します：
-- すべての `modern_vit` を実際のプロジェクト名に更新（途中でプロジェクト名を入力するように求められます）
-- uvを使用してPython環境を初期化
-- Rovo Dev CLIをインストール
-- GitHub CLI（`gh`）をインストール（途中でログインを求められます）
+
+- uv を使用して Python 環境を初期化
 - すべての依存関係をインストール
-- pre-commitフックを設定
-- 初期テストを実行
+- pre-commit フックを設定
+- 必要なディレクトリを作成
 
 ### 手動セットアップ（代替方法）
 
 手動セットアップを希望する場合：
 
 ```bash
-# プロジェクト名を更新
-python scripts/update_modern_vit.py your_modern_vit
-
 # uvをインストール（まだインストールしていない場合）
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
@@ -55,131 +46,175 @@ uv sync --all-extras
 uv run pre-commit install
 uv run pre-commit install --hook-type commit-msg
 
+# データディレクトリを作成
+mkdir -p data logs
+
 # テストを実行
 uv run pytest
 ```
 
 ## 主な特徴
 
-### 実験管理
-- **Experiment中心の設計** - すべての設定を1ファイルで管理
-- **Hydra設定システム** - 階層的で柔軟な設定管理
-- **再現性の保証** - シード固定、決定論的実行、設定の自動保存
+### Vision Transformer 実装
 
-### Lightning統合
+- **ViT (Vision Transformer)** - パッチベースの Transformer アーキテクチャ
+- **MoE (Mixture of Experts)** - スパースなエキスパート選択機構
+- **Expert Choice MoE** - エキスパート主導の選択メカニズム
+- **マルチスケール対応** - Small, Base サイズのモデル設定
+
+### サポートデータセット
+
+- **MNIST** - 手書き数字認識（ベースライン実装）
+- **Imagenette** - ImageNet のサブセット（10 クラス）
+- **自動ダウンロード** - Hugging Face Datasets による管理
+- **柔軟なデータ設定** - バッチサイズ、augmentation 設定の切り替え
+
+### 実験管理
+
+- **Experiment 中心の設計** - すべての設定を 1 ファイルで管理
+- **Hydra 設定システム** - 階層的で柔軟な設定管理
+- **再現性の保証** - シード固定、決定論的実行、設定の自動保存
+- **rootutils 統合** - `.project-root`マーカーによる自動パス解決
+
+### Lightning 統合
+
 - **PyTorch Lightning 2.5+** - モダンな深層学習フレームワーク
 - **自動最適化** - 分散学習、混合精度、勾配累積
 - **豊富なコールバック** - EarlyStopping, ModelCheckpoint, RichProgressBar
-- **柔軟なロガー** - Wandb, TensorBoard対応
-
-### 設定管理
-- **Model Variants** - モデル設定のバリエーション管理
-- **Data Variants** - データセット設定のバリエーション管理
-- **Experiment Configs** - 完全な実験設定の定義
-- **簡単なオーバーライド** - コマンドラインから自由に調整
+- **柔軟なロガー** - Wandb, TensorBoard 対応
 
 ### 開発ツール
-- **[uv](https://github.com/astral-sh/uv)** - 高速なPythonパッケージマネージャー
+
+- **[uv](https://github.com/astral-sh/uv)** - 高速な Python パッケージマネージャー
 - **[Ruff](https://github.com/astral-sh/ruff)** - 超高速リンター・フォーマッター
 - **[mypy](https://mypy-lang.org/)** - 厳格な型チェック
 - **[pytest](https://pytest.org/)** - テストフレームワーク
--  GitHub CLIによるワンコマンドPR・Issue作成
--  キャッシュ最適化された実行環境
-
-### 包括的ドキュメント
--  **動的agents.md** - プロジェクトと共に進化する知識ベース
--  **専門ガイド** - ML/バックエンドプロジェクト対応
--  **協働戦略ガイド** - 人間とRovo Dev CLIの効果的な連携方法
--  **メモリ更新プロトコル** - ドキュメント品質管理フレームワーク
+- **rootutils** - ディレクトリ非依存の実行環境
 
 ## プロジェクト構造
 
 ```
-DL-Scaffold/
-├── .project-root                # プロジェクトルートマーカー
-├── configs/                      # Hydra設定ファイル
-│   ├── train.yaml               # メイントレーニング設定
-│   ├── eval.yaml                # 評価設定
-│   ├── experiment/              # 🔬 実験設定（推奨）
-│   │   ├── mnist_baseline.yaml  # MNISTベースライン
-│   │   ├── mnist_large.yaml     # 大規模モデル実験
-│   │   └── mnist_dev.yaml       # 開発・デバッグ用
-│   ├── model_variant/           # モデル設定バリアント
-│   │   ├── mnist_simple.yaml    # 128 hidden units
-│   │   └── mnist_large.yaml     # 256 hidden units
-│   ├── data_variant/            # データ設定バリアント
-│   │   ├── mnist_standard.yaml
-│   │   └── mnist_large_batch.yaml
-│   ├── callbacks/               # コールバック設定
+modern-vit/
+├── .project-root                     # プロジェクトルートマーカー
+├── configs/                          # Hydra設定ファイル
+│   ├── train.yaml                    # メイントレーニング設定
+│   ├── eval.yaml                     # 評価設定
+│   ├── experiment/                   # 🔬 実験設定（推奨）
+│   │   ├── mnist_*.yaml              # MNISTベースライン実験
+│   │   ├── vit_imagenette_dev.yaml   # 開発・デバッグ用（小型）
+│   │   ├── vit_imagenette_baseline.yaml  # ベースライン
+│   │   └── vit_imagenette_*_moe*.yaml    # MoE系実験
+│   ├── model_variant/                # モデル設定バリアント
+│   │   ├── mnist_*.yaml              # MNISTモデル設定
+│   │   ├── vit_imagenette_small*.yaml    # ViT Small
+│   │   ├── vit_imagenette_base*.yaml     # ViT Base
+│   │   └── *_moe*.yaml               # MoE系モデル設定
+│   ├── data_variant/                 # データ設定バリアント
+│   │   ├── mnist_*.yaml
+│   │   └── imagenette_standard.yaml
+│   ├── callbacks/                    # コールバック設定
 │   │   ├── default.yaml
 │   │   ├── early_stopping.yaml
 │   │   └── model_checkpoint.yaml
-│   ├── trainer/                 # Trainer設定
+│   ├── trainer/                      # Trainer設定
 │   │   ├── default.yaml (CPU)
 │   │   ├── gpu.yaml
 │   │   ├── ddp.yaml (分散学習)
 │   │   └── mps.yaml (Apple Silicon)
-│   └── logger/                  # ロガー設定
+│   └── logger/                       # ロガー設定
 │       └── wandb.yaml
-├── modern_vit/                # メインパッケージ
-│   ├── data/                    # DataModules
-│   │   └── mnist_datamodule.py
-│   ├── models/                  # LightningModules
-│   │   └── mnist_module.py
-│   └── utils/                   # ユーティリティ
-│       └── logging_utils.py
-├── scripts/                     # トレーニング・評価スクリプト
-│   ├── train.py
-│   └── eval.py
-├── tests/                       # テスト
-├── docs/                        # ドキュメント
-└── data/                        # データディレクトリ（自動作成）
+├── modern_vit/                       # メインパッケージ
+│   ├── data/                         # DataModules
+│   │   └── imagenette_datamodule.py  # Imagenetteデータセット
+│   ├── models/                       # LightningModules
+│   │   ├── config.py                 # モデル設定クラス
+│   │   ├── mnist_module.py           # MNISTモジュール
+│   │   └── vit_module.py             # ViT/MoEモジュール
+│   └── utils/                        # ユーティリティ
+│       ├── logging_utils.py          # ログユーティリティ
+│       └── parameter_utils.py        # パラメータ計算
+├── scripts/                          # トレーニング・評価スクリプト
+│   ├── train.py                      # 学習スクリプト
+│   ├── eval.py                       # 評価スクリプト
+│   ├── test_imagenette.py            # Imagenetteテスト
+│   └── check_moe.py                  # MoE動作確認
+├── tests/                            # テスト
+│   └── unit/                         # ユニットテスト
+├── docs/                             # ドキュメント
+│   ├── IMAGENETTE_QUICKSTART.md      # Imagenetteクイックスタート
+│   ├── imagenette-vit-guide.md       # ViTガイド
+│   ├── MOE_CONFIGS.md                # MoE設定ガイド
+│   └── MOE_VERIFICATION.md           # MoE検証ガイド
+└── data/                             # データディレクトリ（自動作成）
 ```
 
 ## 実験の実行
 
-### 基本的な使い方
+### Imagenette (ViT) の学習
 
 ```bash
-# 事前定義された実験を実行（推奨）
-uv run python scripts/train.py experiment=mnist_baseline
-
 # 開発モード（少ないデータで高速テスト）
-uv run python scripts/train.py experiment=mnist_dev
+uv run python scripts/train.py experiment=vit_imagenette_dev
 
-# パラメータをオーバーライド
-uv run python scripts/train.py experiment=mnist_baseline trainer.max_epochs=20
+# ベースラインモデル（ViT Small）
+uv run python scripts/train.py experiment=vit_imagenette_baseline
 
-# 複数のパラメータを変更
-uv run python scripts/train.py experiment=mnist_baseline \
-  trainer.max_epochs=50 \
-  model.lr=0.0001 \
-  data.batch_size=256
+# MoE統合モデル
+uv run python scripts/train.py experiment=vit_imagenette_baseline_moe
+
+# MoE全層適用モデル
+uv run python scripts/train.py experiment=vit_imagenette_baseline_moe_all
 ```
 
-### GPU/MPS使用
+### MNIST の学習
+
+```bash
+# MNISTベースライン
+uv run python scripts/train.py experiment=mnist_baseline
+
+# 開発モード
+uv run python scripts/train.py experiment=mnist_dev
+
+# 大規模モデル
+uv run python scripts/train.py experiment=mnist_large
+```
+
+### パラメータのカスタマイズ
+
+```bash
+# パラメータをオーバーライド
+uv run python scripts/train.py experiment=vit_imagenette_baseline trainer.max_epochs=20
+
+# 複数のパラメータを変更
+uv run python scripts/train.py experiment=vit_imagenette_baseline \
+  trainer.max_epochs=50 \
+  model.lr=0.0001 \
+  data.batch_size=64
+```
+
+### GPU/MPS 使用
 
 ```bash
 # GPU使用
-uv run python scripts/train.py experiment=mnist_baseline trainer=gpu
+uv run python scripts/train.py experiment=vit_imagenette_baseline trainer=gpu
 
 # Apple Silicon (MPS)使用
-uv run python scripts/train.py experiment=mnist_baseline trainer=mps
+uv run python scripts/train.py experiment=vit_imagenette_baseline trainer=mps
 
 # 分散学習（複数GPU）
-uv run python scripts/train.py experiment=mnist_baseline trainer=ddp trainer.devices=4
+uv run python scripts/train.py experiment=vit_imagenette_baseline trainer=ddp trainer.devices=4
 ```
 
-### Wandbロギング
+### Wandb ロギング
 
 ```bash
 # Wandbを有効化
-uv run python scripts/train.py experiment=mnist_baseline logger=wandb
+uv run python scripts/train.py experiment=vit_imagenette_baseline logger=wandb
 
 # Wandbのプロジェクト名を指定
-uv run python scripts/train.py experiment=mnist_baseline logger=wandb \
-  logger.wandb.project=my-project \
-  logger.wandb.name=experiment-001
+uv run python scripts/train.py experiment=vit_imagenette_baseline logger=wandb \
+  logger.wandb.project=modern-vit \
+  logger.wandb.name=vit-baseline-001
 ```
 
 ### モデル評価
@@ -187,40 +222,69 @@ uv run python scripts/train.py experiment=mnist_baseline logger=wandb \
 ```bash
 # 保存されたチェックポイントで評価
 uv run python scripts/eval.py \
-  experiment=mnist_baseline \
+  experiment=vit_imagenette_baseline \
   ckpt_path=/path/to/checkpoint.ckpt
+```
+
+### データセットとモデルのテスト
+
+```bash
+# Imagenetteデータセットの動作確認
+uv run python scripts/test_imagenette.py
+
+# MoE動作の確認
+uv run python scripts/check_moe.py
 ```
 
 ## 新しい実験の作成
 
-### ステップ1: Model Variantを定義
+### ViT モデルのカスタマイズ例
 
-`configs/model_variant/my_model.yaml`:
+#### ステップ 1: Model Variant を定義
+
+`configs/model_variant/vit_imagenette_custom.yaml`:
+
 ```yaml
-_target_: modern_vit.models.mnist_module.MNISTLightningModule
+_target_: modern_vit.models.vit_module.ViTLightningModule
 
-input_size: 28
-hidden_dim: 512  # カスタマイズ
+# モデルアーキテクチャ
+image_size: 224
+patch_size: 16
 num_classes: 10
-lr: 0.0005
-weight_decay: 1e-4
+dim: 384 # 埋め込み次元
+depth: 8 # Transformerブロック数
+heads: 6 # アテンションヘッド数
+mlp_dim: 1536 # FFN中間次元
+dropout: 0.1
+emb_dropout: 0.1
+
+# 学習設定
+lr: 0.0003
+weight_decay: 0.05
+warmup_epochs: 5
+
+# オプション: MoE設定
+use_moe: false
+num_experts: 0
+expert_capacity_factor: 1.0
 ```
 
-### ステップ2: Experiment設定を作成
+#### ステップ 2: Experiment 設定を作成
 
-`configs/experiment/my_experiment.yaml`:
+`configs/experiment/vit_imagenette_custom.yaml`:
+
 ```yaml
 # @package _global_
 
 defaults:
-  - /model_variant@model: my_model
-  - /data_variant@data: mnist_standard
-  - override /data: mnist
+  - /model_variant@model: vit_imagenette_custom
+  - /data_variant@data: imagenette_standard
+  - override /data: imagenette
   - override /callbacks: default
   - override /trainer: gpu
   - override /logger: wandb
 
-tags: ["custom", "experiment"]
+tags: ["vit", "custom", "imagenette"]
 
 seed: 42
 train: true
@@ -228,13 +292,19 @@ test: true
 
 trainer:
   max_epochs: 100
-  precision: "16-mixed"  # 混合精度
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+
+logger:
+  wandb:
+    project: "modern-vit"
+    name: "vit-custom-experiment"
 ```
 
-### ステップ3: 実行
+#### ステップ 3: 実行
 
 ```bash
-uv run python scripts/train.py experiment=my_experiment
+uv run python scripts/train.py experiment=vit_imagenette_custom
 ```
 
 ## 開発
@@ -242,93 +312,57 @@ uv run python scripts/train.py experiment=my_experiment
 ### テストの実行
 
 ```bash
-# すべてのテストを実行（単体・プロパティ・統合）
-make test
+# すべてのテストを実行
+uv run pytest
 
 # カバレッジ付きで実行
-make test-cov
+uv run pytest --cov=modern_vit --cov-report=html
 
-# テスト種別で実行
-uv run pytest tests/unit/ -v           # 単体テスト
-uv run pytest tests/property/ -v       # プロパティベーステスト
-uv run pytest tests/integration/ -v    # 統合テスト
+# 単体テストを実行
+uv run pytest tests/unit/ -v
 
 # 特定のテストを実行
-uv run pytest tests/unit/test_helpers.py -v
+uv run pytest tests/unit/test_vit_module.py -v
+
+# Makefileを使用
+make test
 ```
 
 ### コード品質
 
 ```bash
 # コードをフォーマット
-make format
+uv run ruff format .
 
 # コードをリント
-make lint
+uv run ruff check .
 
 # 型チェック
-make typecheck
-
-# すべてのチェックを順番に実行
-make check
+uv run mypy modern_vit
 
 # pre-commitで完全チェック
-make check-all
-```
+uv run pre-commit run --all-files
 
-### パフォーマンス測定・プロファイリング
-
-```bash
-# ローカルベンチマーク実行
-make benchmark
-
-# プロファイリング実行（cProf使用）
-make profile
-```
-
-### GitHub統合
-
-```bash
-# プルリクエスト作成
-make pr TITLE="新機能追加" BODY="説明" LABEL="enhancement"
-make pr TITLE="バグ修正" BODY="修正内容" LABEL="bug"
-
-# イシュー作成
-make issue TITLE="機能要求" BODY="詳細" LABEL="enhancement"
-make issue TITLE="バグ報告" BODY="再現手順" LABEL="bug"
-
-# 直接gh CLIを使用
-gh pr create --title "タイトル" --body "本文" --label "ラベル"
-gh issue create --title "タイトル" --body "本文" --label "ラベル"
-```
-
-### その他のコマンド
-
-```bash
-# 利用可能なコマンドを表示
-make help
-
-# キャッシュファイルの削除
-make clean
-
-# セキュリティスキャン
-make security
-
-# 依存関係の脆弱性チェック
-make audit
+# Makefileを使用
+make format    # フォーマット
+make lint      # リント
+make typecheck # 型チェック
 ```
 
 ### 依存関係の管理
 
 ```bash
 # ランタイム依存関係を追加
-uv add requests
+uv add torch torchvision
 
 # 開発依存関係を追加
 uv add --dev pytest-mock
 
-# ドキュメント関連依存関係を追加
-uv sync --extra docs
+# 特定のextraをインストール
+uv sync --extra vision     # Vision関連（timm等）
+uv sync --extra nlp        # NLP関連（transformers, datasets等）
+uv sync --extra wandb-logging  # Wandbロギング
+uv sync --extra dev        # 開発ツール
 
 # すべての依存関係を同期
 uv sync --all-extras
@@ -337,91 +371,133 @@ uv sync --all-extras
 uv lock --upgrade
 ```
 
-## 新規プロジェクト設定チェックリスト
+## モデルとデータセット
 
-### 基本プロジェクト設定
-- [ ] **プロジェクト名更新**: `make setup`実行またはスクリプトで一括変更
-- [ ] **作者情報更新**: `pyproject.toml`の`authors`セクション
-- [ ] **ライセンス選択**: LICENSEファイルを適切なライセンスに更新
-- [ ] **README.md更新**: プロジェクト固有の説明・機能・使用方法
-- [ ] **agents.md カスタマイズ**: プロジェクト概要をテンプレートから更新
+### サポートモデル
 
-### 開発環境・品質設定
-- [ ] **依存関係調整**: プロジェクトに必要な追加パッケージの導入
-- [ ] **型チェック厳格さ**: 必要に応じて段階的に`mypy`設定を調整
-- [ ] **リントルール**: プロジェクトに合わせた`ruff`設定のカスタマイズ
-- [ ] **テストカバレッジ**: `pytest`カバレッジ要件の調整
-- [ ] **プロファイリング**: パフォーマンス要件に応じたベンチマーク設定
+- **ViT (Vision Transformer)**: パッチベースの画像分類モデル
+  - Small: dim=384, depth=8, heads=6
+  - Base: dim=768, depth=12, heads=12
+- **MoE (Mixture of Experts)**: スパース専門家モデル
 
-### GitHubリポジトリ・セキュリティ設定
-- [ ] **ブランチ保護**: `main`ブランチの保護ルール有効化
-- [ ] **PR必須レビュー**: Pull Request作成時のレビュー要求設定
-- [ ] **ステータスチェック**: CI・型チェック・テストの必須化
-- [ ] **Dependabot**: 自動依存関係更新の有効化
-- [ ] **Issues/Projects**: 必要に応じてプロジェクト管理機能の有効化
-- [ ] **Secrets管理**: 必要なAPIキーや認証情報の安全な設定
+  - 標準 MoE: トークンが専門家を選択
+  - Expert Choice MoE: 専門家がトークンを選択
+  - 最終層のみ / 全層適用の設定が可能
 
-### ドキュメント・協働設定
-- [ ] **agents.md詳細化**: プロジェクト固有の開発ルール・制約の追加
-- [ ] **専門ガイド選択**: ML/バックエンドなど該当するガイドのインポート
-- [ ] **チーム規約**: `docs/team-rules.md`などチーム固有ルールの追加
-- [ ] **協働メトリクス**: 効率指標の初期値設定・測定開始
+- **MNIST 分類器**: シンプルな MLP ベースライン
 
-## カスタマイズ
+### データセット
 
-### 型チェックの厳格さ調整
+- **Imagenette**: ImageNet の 10 クラスサブセット
 
-mypyのstrictモードが最初から厳しすぎる場合：
+  - 224x224 にリサイズ
+  - 自動ダウンロード（Hugging Face Datasets）
+  - Train: 9,469 枚 / Val: 3,925 枚
 
-```toml
-# pyproject.toml - 基本設定から開始
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
+- **MNIST**: 手書き数字認識
+  - 28x28 グレースケール
+  - Train: 60,000 枚 / Test: 10,000 枚
 
-# 段階的により厳格な設定を有効化
-[[tool.mypy.overrides]]
-module = ["modern_vit.core.*"]
-strict = true  # まずコアモジュールにstrictモードを適用
+## ドキュメント
+
+詳細なガイドは`docs/`ディレクトリを参照してください：
+
+- [Imagenette Quickstart](docs/IMAGENETTE_QUICKSTART.md) - Imagenette 学習のクイックスタート
+- [Imagenette ViT Guide](docs/imagenette-vit-guide.md) - ViT 実装の詳細ガイド
+- [MoE Configs](docs/MOE_CONFIGS.md) - MoE 設定の詳細
+- [MoE Verification](docs/MOE_VERIFICATION.md) - MoE 動作検証方法
+
+## プロジェクト設計
+
+### rootutils 統合
+
+このプロジェクトは`rootutils`を使用して、どのディレクトリからでもスクリプトを実行できます。
+
+```python
+# scripts/train.py, scripts/eval.py等
+import rootutils
+root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 ```
 
-### リントルールの変更
+これにより：
 
-```toml
-# pyproject.toml
-[tool.ruff.lint]
-# 必要に応じてルールコードを追加・削除
-select = ["E", "F", "I"]  # 基本から開始
-ignore = ["E501"]  # 行の長さはフォーマッターが処理
+- プロジェクトルートが自動検出される
+- Python パスが自動設定される
+- `import modern_vit`がどこからでも動作する
+
+### Hydra 設定の階層構造
+
+設定は階層的に構成されており、柔軟な組み合わせが可能です：
+
+```
+experiment/
+  └─ 完全な実験設定（推奨エントリーポイント）
+      ├─ model_variant/ （モデルアーキテクチャ）
+      ├─ data_variant/  （データセット設定）
+      ├─ trainer/       （学習設定）
+      ├─ callbacks/     （コールバック）
+      └─ logger/        （ロギング）
 ```
 
-### テストカバレッジ要件の変更
+### 実験中心設計
 
-```toml
-# pyproject.toml
-[tool.pytest.ini_options]
-addopts = [
-    "--cov-fail-under=60",  # 初期要件を低めに設定
-]
+`configs/experiment/`の各ファイルが完全な実験を定義します。これにより：
+
+- 実験の再現性が保証される
+- 設定の共有が容易になる
+- バージョン管理がしやすくなる
+
+## 参考資料
+
+### フレームワーク・ライブラリ
+
+- **[PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/)** - 深層学習フレームワーク
+- **[Hydra](https://hydra.cc/)** - 設定管理フレームワーク
+- **[Weights & Biases](https://docs.wandb.ai/)** - 実験管理・可視化
+- **[rootutils](https://github.com/ashleve/rootutils)** - プロジェクトルート管理
+
+### Vision Transformer 関連
+
+- **[An Image is Worth 16x16 Words](https://arxiv.org/abs/2010.11929)** - ViT 原論文
+- **[Mixture of Experts](https://arxiv.org/abs/1701.06538)** - MoE 原論文
+- **[timm](https://github.com/huggingface/pytorch-image-models)** - PyTorch Image Models
+
+### 開発ツール
+
+- **[uv](https://docs.astral.sh/uv/)** - Python パッケージ管理
+- **[Ruff](https://docs.astral.sh/ruff/)** - リント・フォーマッター
+- **[pytest](https://docs.pytest.org/)** - テストフレームワーク
+
+## トラブルシューティング
+
+### データセットのダウンロードエラー
+
+```bash
+# Hugging Face Datasetsのキャッシュをクリア
+rm -rf ~/.cache/huggingface/datasets/frgfm___imagenette
 ```
 
-## 外部リソース・参考資料
+### CUDA Out of Memory
 
-### 開発ツール公式ドキュメント
-- **[uv ドキュメント](https://docs.astral.sh/uv/)** - Pythonパッケージ管理
-- **[Ruff ドキュメント](https://docs.astral.sh/ruff/)** - リント・フォーマッター
-- **[mypy ドキュメント](https://mypy.readthedocs.io/)** - 型チェッカー
-- **[pytest ドキュメント](https://docs.pytest.org/en/stable/)** - テストフレームワーク
-- **[Hypothesis ドキュメント](https://hypothesis.readthedocs.io/)** - プロパティベーステスト
+バッチサイズを減らすか、勾配累積を使用：
 
-### Python・型ヒント
-- **[PEP 695 - Type Parameter Syntax](https://peps.python.org/pep-0695/)** - 新型構文仕様
-- **[TypedDict Guide](https://docs.python.org/3/library/typing.html#typing.TypedDict)** - 型安全な辞書
-- **[Python 3.12 リリースノート](https://docs.python.org/3/whatsnew/3.12.html)** - 新機能一覧
+```bash
+uv run python scripts/train.py experiment=vit_imagenette_baseline \
+  data.batch_size=32 \
+  trainer.accumulate_grad_batches=2
+```
 
----
+### MoE の動作確認
+
+```bash
+# MoE層の動作を確認
+uv run python scripts/check_moe.py
+```
+
+## コントリビューション
+
+プルリクエストを歓迎します。大きな変更の場合は、まず issue を開いて変更内容を議論してください。
 
 ## ライセンス
 
-このプロジェクトはApache-2.0ライセンスの下でライセンスされています。
+このプロジェクトは Apache-2.0 ライセンスの下でライセンスされています。詳細は [LICENSE](LICENSE) ファイルを参照してください。
