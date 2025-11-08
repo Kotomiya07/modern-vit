@@ -5,6 +5,7 @@
 defaults:
   - _self_
   - data: mnist
+  - model: mnist
   - callbacks: default
   - logger: null # set logger here or use command line (e.g. `python train.py logger=wandb`)
   - trainer: default

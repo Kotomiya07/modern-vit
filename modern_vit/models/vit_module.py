@@ -44,9 +44,7 @@ def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0) -> Tensor:
     return freqs_cis
 
 
-def apply_rotary_emb(
-    xq: Tensor, xk: Tensor, freqs_cis: Tensor
-) -> tuple[Tensor, Tensor]:
+def apply_rotary_emb(xq: Tensor, xk: Tensor, freqs_cis: Tensor) -> tuple[Tensor, Tensor]:
     """Apply rotary positional embeddings to query and key tensors."""
     xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], -1, 2))
     xk_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], -1, 2))
@@ -141,6 +139,10 @@ class TokenChoiceRouter(AbstractRouter):
         logits = self.gate(x)
         scores = nn.functional.softmax(logits, dim=-1)
 
+        # Get top-k experts for each token
+        top_k_scores, top_k_indices = torch.topk(scores, self.n_experts_per_tok, dim=-1)
+        top_k_scores /= (top_k_scores.sum(dim=-1, keepdim=True) + 1e-8)
+
         # Calculate auxiliary loss for load balancing
         _, n_experts = scores.shape
         # Fraction of router probability mass allocated to each expert
@@ -151,8 +153,6 @@ class TokenChoiceRouter(AbstractRouter):
         router_prob_per_expert = selected_mask.mean(dim=0)
         aux_loss = (tokens_per_expert * router_prob_per_expert).sum() * n_experts
 
-        top_k_scores, top_k_indices = torch.topk(scores, self.n_experts_per_tok, dim=-1)
-        top_k_scores /= top_k_scores.sum(dim=-1, keepdim=True)
         return top_k_scores, top_k_indices, aux_loss
 
 
@@ -164,11 +164,47 @@ class ExpertChoiceRouter(AbstractRouter):
         self.top_k_tokens = top_k_tokens
 
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor, Tensor]:
-        """Forward pass for expert-choice routing."""
-        logits = self.gate(x)
-        scores = nn.functional.softmax(logits, dim=0)  # Apply softmax over tokens
-        top_k_scores, top_k_indices = torch.topk(scores, self.top_k_tokens, dim=0)
-        return top_k_scores, top_k_indices, torch.tensor(0.0, device=x.device)
+        """Forward pass for expert-choice routing.
+
+        In expert-choice routing, each expert selects top-k tokens.
+        Returns scores and indices in a format compatible with token-choice routing
+        for consistency with MoE.forward() implementation.
+        """
+        logits = self.gate(x)  # Shape: (n_tokens, n_experts)
+        # Transpose to (n_experts, n_tokens) for expert-choice routing
+        logits_T = logits.transpose(0, 1)
+        scores = nn.functional.softmax(logits_T, dim=-1)  # Softmax over tokens for each expert
+
+        # Get top-k tokens for each expert
+        assert self.top_k_tokens <= n_tokens
+        top_k_scores, top_k_indices = torch.topk(scores, self.top_k_tokens, dim=-1)
+        # Shape: (n_experts, k)
+
+        # Normalize scores
+        top_k_scores /= (top_k_scores.sum(dim=-1, keepdim=True) + 1e-8)
+
+        # Convert to token-choice format: (n_tokens, k) where each token knows which experts selected it
+        # This is a simplified conversion - full expert-choice routing would require
+        # different MoE.forward() implementation
+        n_tokens = x.shape[0]
+        n_experts = logits.shape[1]
+
+        # Create token-choice compatible format
+        # For each token, find which experts selected it
+        token_scores = torch.zeros(n_tokens, n_experts, device=x.device)
+        token_indices = torch.zeros(n_tokens, n_experts, dtype=torch.long, device=x.device)
+
+        for expert_idx in range(n_experts):
+            selected_token_indices = top_k_indices[expert_idx]  # Shape: (k,)
+            selected_scores = top_k_scores[expert_idx]  # Shape: (k,)
+            token_scores[selected_token_indices, expert_idx] = selected_scores
+            token_indices[selected_token_indices, expert_idx] = expert_idx
+
+        # Take top-k experts per token (in case a token is selected by multiple experts)
+        top_k_scores_final, top_k_indices_final = torch.topk(token_scores, min(n_experts, self.top_k_tokens), dim=-1)
+        top_k_scores_final /= (top_k_scores_final.sum(dim=-1, keepdim=True) + 1e-8)
+
+        return top_k_scores_final, top_k_indices_final, torch.tensor(0.0, device=x.device)
 
 
 class MoE(nn.Module):
@@ -183,30 +219,94 @@ class MoE(nn.Module):
         router: AbstractRouter,
     ) -> None:
         super().__init__()
-        self.experts = nn.ModuleList(
-            [FeedForward(dim, hidden_dim, multiple_of) for _ in range(n_experts)]
-        )
+        self.experts = nn.ModuleList([FeedForward(dim, hidden_dim, multiple_of) for _ in range(n_experts)])
         self.router = router
+
+    def get_expert_usage_stats(self, x: Tensor) -> dict[str, Any]:
+        """Get statistics about expert usage for debugging.
+
+        Args:
+            x: Input tensor of shape (bsz, seqlen, dim)
+
+        Returns:
+            Dictionary containing:
+                - expert_counts: Number of tokens assigned to each expert
+                - expert_fractions: Fraction of tokens assigned to each expert
+                - routing_scores: Mean routing scores for each expert
+                - all_experts_used: Whether all experts are used
+        """
+        bsz, seqlen, dim = x.shape
+        x_flat = x.view(-1, dim)
+        top_k_scores, top_k_indices, _ = self.router(x_flat)
+        n_tokens = x_flat.shape[0]
+        k = top_k_indices.shape[1]
+        n_experts = len(self.experts)
+
+        # Count tokens assigned to each expert
+        flat_indices = top_k_indices.view(-1)
+        expert_counts = torch.zeros(n_experts, device=x.device, dtype=torch.long)
+        expert_counts.scatter_add_(0, flat_indices, torch.ones_like(flat_indices))
+
+        # Calculate fractions
+        expert_fractions = expert_counts.float() / (n_tokens * k)
+
+        # Calculate mean routing scores per expert
+        flat_scores = top_k_scores.view(-1)
+        expert_scores_sum = torch.zeros(n_experts, device=x.device)
+        expert_scores_count = torch.zeros(n_experts, device=x.device, dtype=torch.long)
+        expert_scores_sum.scatter_add_(0, flat_indices, flat_scores)
+        expert_scores_count.scatter_add_(0, flat_indices, torch.ones_like(flat_indices))
+        expert_scores_mean = expert_scores_sum / (expert_scores_count + 1e-8)  # Avoid division by zero
+
+        return {
+            "expert_counts": expert_counts.cpu().numpy(),
+            "expert_fractions": expert_fractions.cpu().numpy(),
+            "routing_scores": expert_scores_mean.cpu().numpy(),
+            "all_experts_used": (expert_counts > 0).all().item(),
+            "n_tokens": n_tokens,
+            "k": k,
+        }
 
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
         """Forward pass."""
         bsz, seqlen, dim = x.shape
         x_flat = x.view(-1, dim)
+        n_tokens = x_flat.shape[0]
         top_k_scores, top_k_indices, aux_loss = self.router(x_flat)
+        k = top_k_indices.shape[1]
 
+        # Group tokens by expert for efficient batch processing
+        # Create token-to-expert mapping: (n_tokens * k,) -> expert_id
+        flat_indices = top_k_indices.view(-1)  # Shape: (n_tokens * k,)
+        flat_token_indices = torch.arange(n_tokens, device=x.device).repeat_interleave(k)
+        flat_k_indices = torch.arange(k, device=x.device).repeat(n_tokens)
+
+        # Process each expert with batched inputs
         output = torch.zeros_like(x_flat)
-        for i, expert in enumerate(self.experts):
-            mask = top_k_indices == i
-            if mask.any():
-                expert_indices = mask.nonzero(as_tuple=True)
-                expert_inputs = x_flat[expert_indices[0]]
-                expert_scores = top_k_scores[expert_indices]
-                expert_outputs = expert(expert_inputs)
-                output.index_add_(
-                    0,
-                    expert_indices[0],
-                    (expert_outputs * expert_scores.unsqueeze(-1)).type_as(x),
-                )
+        for expert_idx in range(len(self.experts)):
+            # Find all (token_idx, k_idx) pairs assigned to this expert
+            expert_mask = flat_indices == expert_idx
+            if not expert_mask.any():
+                continue
+
+            # Get token indices and k indices assigned to this expert
+            token_indices = flat_token_indices[expert_mask]
+            k_indices = flat_k_indices[expert_mask]
+
+            # Batch process all tokens assigned to this expert
+            expert_inputs = x_flat[token_indices]
+            expert_outputs = self.experts[expert_idx](expert_inputs)
+
+            # Get corresponding scores
+            expert_scores = top_k_scores[token_indices, k_indices].unsqueeze(-1)
+
+            # Weighted sum: add expert outputs to corresponding token positions
+            output.index_add_(
+                0,
+                token_indices,
+                (expert_outputs * expert_scores).type_as(x),
+            )
+
         return output.view(bsz, seqlen, dim), aux_loss
 
 
@@ -246,9 +346,7 @@ class ViTBlock(nn.Module):
         self.attention_norm = RMSNorm(dim)
         self.ffn_norm = RMSNorm(dim)
 
-    def forward(
-        self, x: Tensor, freqs_cis: Tensor, mask: Tensor | None
-    ) -> tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor, freqs_cis: Tensor, mask: Tensor | None) -> tuple[Tensor, Tensor]:
         """Forward pass."""
         h = x + self.attention(self.attention_norm(x), freqs_cis, mask)
 
@@ -267,9 +365,7 @@ class ViT(nn.Module):
     def __init__(self, config: ViTConfig) -> None:
         super().__init__()
         self.patch_size = config.patch_size
-        self.patch_embedding = nn.Linear(
-            config.channels * config.patch_size * config.patch_size, config.dim
-        )
+        self.patch_embedding = nn.Linear(config.channels * config.patch_size * config.patch_size, config.dim)
         self.layers = nn.ModuleList(
             [
                 ViTBlock(
@@ -309,9 +405,8 @@ class ViT(nn.Module):
         x = self.patch_embedding(x)
         _, n, _ = x.shape
 
-        if self.freqs_cis.device != x.device:
-            self.freqs_cis = self.freqs_cis.to(x.device)
-        freqs_cis = self.freqs_cis[:n]
+        # Ensure freqs_cis is on the same device as input
+        freqs_cis = self.freqs_cis.to(x.device)[:n]
 
         total_aux_loss = torch.tensor(0.0, device=x.device)
         for layer in self.layers:
@@ -377,9 +472,7 @@ class ViTLightningModule(LightningModule):
         self.val_acc.reset()
         self.val_acc_best.reset()
 
-    def model_step(
-        self, batch: tuple[Tensor, Tensor]
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
+    def model_step(self, batch: tuple[Tensor, Tensor]) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
         """Perform a single model step on a batch of data."""
         x, y = batch
         logits, aux_loss = self.forward(x)
@@ -394,18 +487,10 @@ class ViTLightningModule(LightningModule):
 
         self.train_loss(total_loss)
         self.train_acc(preds, targets)
-        self.log(
-            "train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True
-        )
-        self.log(
-            "train/main_loss", main_loss, on_step=False, on_epoch=True, prog_bar=False
-        )
-        self.log(
-            "train/aux_loss", aux_loss, on_step=False, on_epoch=True, prog_bar=False
-        )
-        self.log(
-            "train/acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True
-        )
+        self.log("train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("train/main_loss", main_loss, on_step=False, on_epoch=True, prog_bar=False)
+        self.log("train/aux_loss", aux_loss, on_step=False, on_epoch=True, prog_bar=False)
+        self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True)
 
         return total_loss
 
@@ -417,9 +502,7 @@ class ViTLightningModule(LightningModule):
         self.val_acc(preds, targets)
 
         self.log("val/loss", self.val_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log(
-            "val/main_loss", main_loss, on_step=False, on_epoch=True, prog_bar=False
-        )
+        self.log("val/main_loss", main_loss, on_step=False, on_epoch=True, prog_bar=False)
         self.log("val/aux_loss", aux_loss, on_step=False, on_epoch=True, prog_bar=False)
         self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
 
@@ -427,9 +510,7 @@ class ViTLightningModule(LightningModule):
         """Called at the end of validation epoch."""
         acc = self.val_acc.compute()
         self.val_acc_best(acc)
-        self.log(
-            "val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True
-        )
+        self.log("val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True)
 
     def test_step(self, batch: tuple[Tensor, Tensor], batch_idx: int) -> None:
         """Perform a single test step."""
@@ -438,15 +519,9 @@ class ViTLightningModule(LightningModule):
         self.test_loss(total_loss)
         self.test_acc(preds, targets)
 
-        self.log(
-            "test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True
-        )
-        self.log(
-            "test/main_loss", main_loss, on_step=False, on_epoch=True, prog_bar=False
-        )
-        self.log(
-            "test/aux_loss", aux_loss, on_step=False, on_epoch=True, prog_bar=False
-        )
+        self.log("test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("test/main_loss", main_loss, on_step=False, on_epoch=True, prog_bar=False)
+        self.log("test/aux_loss", aux_loss, on_step=False, on_epoch=True, prog_bar=False)
         self.log("test/acc", self.test_acc, on_step=False, on_epoch=True, prog_bar=True)
 
     def configure_optimizers(self) -> dict[str, Any]:
