@@ -80,7 +80,7 @@ docs = [
 
 # All optional dependencies
 all = [
-    "your-project-name[vision,nlp,pretrain,audio,wandb-logging,huggingface,notebook]",
+    "modern_vit[vision,nlp,pretrain,audio,wandb-logging,huggingface,notebook]",
 ]
 
 [build-system]
